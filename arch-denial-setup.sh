@@ -279,6 +279,24 @@ for d in /home/*/; do
   fi
 done
 
+# ---- 附加应用 ----
+# lact: NVIDIA GPU 风扇/功耗控制 (官方仓库)
+pac "lact"
+run "systemctl enable lactd.service 2>/dev/null || true"
+
+# protonplus: Steam/兼容性工具管理 (archlinuxcn 有预编译, 优先)
+pac "protonplus"
+
+# bottles / google-chrome: AUR, 用 paru 装 (需普通用户, makepkg 不允许 root)
+AUR_TARGET="${SUDO_USER:-$(getent passwd | awk -F: '$3>=1000 && $3<60000 {print $1; exit}')}"
+if [ -n "$AUR_TARGET" ] && [ "$DRY_RUN" != 1 ]; then
+  run "sudo -u $AUR_TARGET paru -S --needed --noconfirm bottles google-chrome"
+elif [ "$DRY_RUN" = 1 ]; then
+  printf '\033[2mDRY>\033[0m sudo -u <user> paru -S --needed --noconfirm bottles google-chrome\n'
+else
+  warn "无法确定普通用户来构建 AUR (bottles/google-chrome), 请手动: paru -S bottles google-chrome"
+fi
+
 #==============================================================================
 # 8/8  迎宾: greetd + cosmic-greeter (不装 sddm, 避免 DM 冲突)
 #==============================================================================
