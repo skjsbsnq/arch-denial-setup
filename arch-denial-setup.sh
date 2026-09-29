@@ -83,7 +83,12 @@ info "内核: $(uname -r) | NVIDIA: $NVIDIA_PKG | archlinuxcn: $CN_MIRROR"
 #==============================================================================
 info "==> [1/8] archlinuxcn 仓库 + paru"
 if ! grep -q '^\[archlinuxcn\]' /etc/pacman.conf 2>/dev/null; then
-  run "printf '\n[archlinuxcn]\nServer = %s\n' \"$CN_MIRROR\" >> /etc/pacman.conf"
+  # 注意: $arch 是 pacman 占位符, 不能经 eval (会二次展开), 直接 printf
+  if [ "$DRY_RUN" = 1 ]; then
+    printf '\033[2mDRY>\033[0m append [archlinuxcn] Server=%s to /etc/pacman.conf\n' "$CN_MIRROR"
+  else
+    printf '\n[archlinuxcn]\nServer = %s\n' "$CN_MIRROR" >> /etc/pacman.conf
+  fi
 fi
 run "pacman -Sy --noconfirm"
 pac "archlinuxcn-keyring"          # 导入 CN 仓库 GPG key
