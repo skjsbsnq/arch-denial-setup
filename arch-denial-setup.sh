@@ -237,9 +237,9 @@ ok "fcitx5 就绪; 登录后用 fcitx5-configtool 添加拼音"
 #==============================================================================
 # 7/8  应用软件
 #==============================================================================
-info "==> [7/8] Kitty / Firefox / Nautilus / 编辑器 / eog / mpv"
+info "==> [7/8] Kitty / Firefox / Nautilus / 编辑器 / loupe / mpv"
 pac "kitty firefox firefox-i18n-zh-cn \
-     nautilus gvfs gnome-text-editor eog mpv"
+     nautilus gvfs gnome-text-editor loupe mpv"
 
 #==============================================================================
 # 8/8  迎宾: greetd + cosmic-greeter (不装 sddm, 避免 DM 冲突)
