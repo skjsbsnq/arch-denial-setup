@@ -127,9 +127,31 @@ run "locale-gen"
 wfile /etc/locale.conf <<EOF
 LANG=$LOCALE
 EOF
+
+# 字体包 (Maple Mono NF CN 来自 archlinuxcn)
 pac "noto-fonts noto-fonts-cjk noto-fonts-emoji wqy-microhei \
      adobe-source-han-sans-cn-fonts ttf-dejavu \
-     ttf-maplemono-nf-cn-unhinted"   # Maple Mono NF 中文 (archlinuxcn)
+     ttf-maplemono-nf-cn-unhinted"
+
+# 全局默认字体: Maple Mono NF CN (等宽+中文+Nerd图标), 界面族回退 Noto CJK
+wfile /etc/fonts/local.conf <<'FONTCONF'
+<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+  <alias>
+    <family>monospace</family>
+    <prefer><family>Maple Mono NF CN</family><family>Noto Sans Mono CJK SC</family></prefer>
+  </alias>
+  <alias>
+    <family>sans-serif</family>
+    <prefer><family>Maple Mono NF CN</family><family>Noto Sans CJK SC</family></prefer>
+  </alias>
+  <alias>
+    <family>serif</family>
+    <prefer><family>Maple Mono NF CN</family><family>Noto Serif CJK SC</family></prefer>
+  </alias>
+</fontconfig>
+FONTCONF
 run "fc-cache -f >/dev/null 2>&1 || true"
 ok "LANG=$LOCALE (其余 LC_* 默认, 终端/日志保持英文便于排错)"
 
@@ -240,6 +262,22 @@ ok "fcitx5 就绪; 登录后用 fcitx5-configtool 添加拼音"
 info "==> [7/8] Kitty / Firefox / Nautilus / 编辑器 / loupe / mpv"
 pac "kitty firefox firefox-i18n-zh-cn \
      nautilus gvfs gnome-text-editor loupe mpv"
+
+# Kitty 默认终端字体 = Maple Mono NF CN (中文+Nerd图标)
+wfile /etc/skel/.config/kitty/kitty.conf <<'KITTYCONF'
+font_family      Maple Mono NF CN
+bold_font        Maple Mono NF CN Bold
+italic_font      Maple Mono NF CN Italic
+bold_italic_font Maple Mono NF CN Bold Italic
+font_size        11
+KITTYCONF
+# 已有用户也补上 (若该用户还没有 kitty.conf)
+for d in /home/*/; do
+  [ -d "$d" ] || continue
+  if [ ! -f "$d.config/kitty/kitty.conf" ]; then
+    run "mkdir -p '$d.config/kitty' && cp /etc/skel/.config/kitty/kitty.conf '$d.config/kitty/kitty.conf' && chown -R $(stat -c '%u:%g' \"$d\") '$d.config/kitty'"
+  fi
+done
 
 #==============================================================================
 # 8/8  迎宾: greetd + cosmic-greeter (不装 sddm, 避免 DM 冲突)
