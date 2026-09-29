@@ -172,8 +172,22 @@ if [ "$SKIP_DENIAL_REPO" = 1 ]; then
 elif grep -qiE '^\[(denial|denialwm)\]' /etc/pacman.conf 2>/dev/null; then
   info "Denial 仓库已在 pacman.conf 中, 跳过安装脚本"
 else
-  info "运行 Denial 官方仓库安装脚本 (添加签名 pacman 仓库)"
-  run "sh -c 'curl -fsSL https://install.denialwm.org | sh'"
+  # Denial 安装脚本从 /dev/tty 交互, 不能经 eval (stdin 会是脚本内容), 直接前台跑
+  info "运行 Denial 官方仓库安装脚本 (需要一次 y 确认)"
+  if [ "$DRY_RUN" = 1 ]; then
+    printf '\033[2mDRY>\033[0m curl -fsSL https://install.denialwm.org | sh\n'
+  else
+    # 不设 -e 中断: 若交互取消, 给出手动补救命令
+    if curl -fsSL https://install.denialwm.org | sh; then
+      ok "Denial 仓库已添加"
+    else
+      warn "Denial 仓库脚本未成功执行"
+      warn "请先手动跑:  curl -fsSL https://install.denialwm.org | sh  (输入 y)"
+      warn "然后:          sudo pacman -Syu denial"
+      warn "再重跑本脚本(会自动跳过已完成的步骤)"
+      exit 1
+    fi
+  fi
 fi
 run "pacman -Syu --noconfirm"
 pac "denial"
